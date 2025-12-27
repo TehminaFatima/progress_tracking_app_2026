@@ -45,9 +45,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     final authController = Get.find<AuthController>();
 
-    // If user is authenticated, navigate to home (dashboard)
+    // If user is authenticated, navigate to categories (main screen)
     if (authController.isAuthenticated) {
-      Get.offAllNamed('/home');
+      Get.offAllNamed('/categories');
     } else {
       // Otherwise, navigate to login
       Get.offAllNamed('/login');

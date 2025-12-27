@@ -6,6 +6,8 @@ import 'auth/screens/splash_screen.dart';
 import 'auth/screens/login_screen.dart';
 import 'auth/screens/register_screen.dart';
 import 'auth/screens/forgot_password_screen.dart';
+import 'categories/screens/categories_screen.dart';
+import 'categories/screens/add_edit_category_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +47,8 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/login', page: () => const LoginScreen()),
         GetPage(name: '/register', page: () => const RegisterScreen()),
         GetPage(name: '/forgot-password', page: () => const ForgotPasswordScreen()),
+        GetPage(name: '/categories', page: () => const CategoriesScreen()),
+        GetPage(name: '/add-category', page: () => const AddEditCategoryScreen()),
         GetPage(name: '/home', page: () => const DashboardScreen()),
       ],
     );

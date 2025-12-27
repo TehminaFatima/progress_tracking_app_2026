@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (authController.isAuthenticated) {
-      Get.offAllNamed('/home');
+      Get.offAllNamed('/categories');
     }
   }
 

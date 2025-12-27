@@ -54,7 +54,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (authController.isAuthenticated) {
-      Get.offAllNamed('/home');
+      Get.offAllNamed('/categories');
     }
   }
 

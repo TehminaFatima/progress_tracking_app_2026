@@ -188,4 +188,27 @@ class CategoryService {
       return false;
     }
   }
+
+  /// Get challenge completion stats for a category
+  /// Returns {total: int, completed: int}
+  Future<Map<String, int>> getChallengeStats(String categoryId) async {
+    try {
+      final userId = currentUserId;
+      if (userId == null) return {'total': 0, 'completed': 0};
+
+      final response = await _supabase
+          .from('challenges')
+          .select('id, completed')
+          .eq('user_id', userId)
+          .eq('category_id', categoryId);
+
+      final challenges = response as List;
+      final total = challenges.length;
+      final completed = challenges.where((c) => c['completed'] == true).length;
+
+      return {'total': total, 'completed': completed};
+    } catch (e) {
+      return {'total': 0, 'completed': 0};
+    }
+  }
 }

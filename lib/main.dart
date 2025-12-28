@@ -8,6 +8,8 @@ import 'auth/screens/register_screen.dart';
 import 'auth/screens/forgot_password_screen.dart';
 import 'categories/screens/categories_screen.dart';
 import 'categories/screens/add_edit_category_screen.dart';
+import 'challenges/screens/challenge_list_screen.dart';
+import 'challenges/screens/add_edit_challenge_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,6 +52,24 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/categories', page: () => const CategoriesScreen()),
         GetPage(name: '/add-category', page: () => const AddEditCategoryScreen()),
         GetPage(name: '/home', page: () => const DashboardScreen()),
+        // Challenge routes (optional named routing)
+        GetPage(
+          name: '/challenge-list',
+          page: () {
+            final args = Get.arguments as Map<String, dynamic>?;
+            final categoryId = args?['categoryId'] as String? ?? '';
+            final categoryName = args?['categoryName'] as String? ?? 'Category';
+            return ChallengeListScreen(categoryId: categoryId, categoryName: categoryName);
+          },
+        ),
+        GetPage(
+          name: '/add-challenge',
+          page: () {
+            final args = Get.arguments as Map<String, dynamic>?;
+            final categoryId = args?['categoryId'] as String? ?? '';
+            return AddEditChallengeScreen(categoryId: categoryId);
+          },
+        ),
       ],
     );
   }

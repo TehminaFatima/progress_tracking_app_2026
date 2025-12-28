@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/category_controller.dart';
+import '../services/category_service.dart';
 import 'add_edit_category_screen.dart';
+import '../../challenges/screens/challenge_list_screen.dart';
 
 /// Main Categories List Screen
 /// Shows all life categories (pillars) for the user
@@ -49,12 +51,10 @@ class CategoriesScreen extends StatelessWidget {
                 category: category,
                 primaryColor: primaryColor,
                 onTap: () {
-                  // TODO: Navigate to category details/tasks
-                  Get.snackbar(
-                    'Coming Soon',
-                    'Category details and tasks will be added next',
-                    snackPosition: SnackPosition.BOTTOM,
-                  );
+                  Get.to(() => ChallengeListScreen(
+                        categoryId: category.id,
+                        categoryName: category.name,
+                      ));
                 },
                 onEdit: () {
                   Get.to(
@@ -159,7 +159,7 @@ class CategoriesScreen extends StatelessWidget {
 }
 
 /// Category Card Widget
-class _CategoryCard extends StatelessWidget {
+class _CategoryCard extends StatefulWidget {
   final dynamic category;
   final Color primaryColor;
   final VoidCallback onTap;
@@ -175,6 +175,20 @@ class _CategoryCard extends StatelessWidget {
   });
 
   @override
+  State<_CategoryCard> createState() => _CategoryCardState();
+}
+
+class _CategoryCardState extends State<_CategoryCard> {
+  late Future<Map<String, int>> _statsFuture;
+  final CategoryService _categoryService = CategoryService();
+
+  @override
+  void initState() {
+    super.initState();
+    _statsFuture = _categoryService.getChallengeStats(widget.category.id);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -183,7 +197,7 @@ class _CategoryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: InkWell(
-        onTap: onTap,
+        onTap: widget.onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.all(20),
@@ -191,8 +205,8 @@ class _CategoryCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
               colors: [
-                primaryColor.withOpacity(0.08),
-                primaryColor.withOpacity(0.03),
+                widget.primaryColor.withOpacity(0.08),
+                widget.primaryColor.withOpacity(0.03),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -207,7 +221,7 @@ class _CategoryCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: primaryColor,
+                      color: widget.primaryColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
@@ -220,7 +234,7 @@ class _CategoryCard extends StatelessWidget {
                   // Name
                   Expanded(
                     child: Text(
-                      category.name,
+                      widget.category.name,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -231,9 +245,9 @@ class _CategoryCard extends StatelessWidget {
                   PopupMenuButton<String>(
                     onSelected: (value) {
                       if (value == 'edit') {
-                        onEdit();
+                        widget.onEdit();
                       } else if (value == 'delete') {
-                        onDelete();
+                        widget.onDelete();
                       }
                     },
                     itemBuilder: (context) => [
@@ -262,32 +276,51 @@ class _CategoryCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              // Completion percentage (placeholder for now)
-              Row(
-                children: [
-                  Expanded(
-                    child: LinearProgressIndicator(
-                      value: 0.0, // TODO: Calculate from tasks
-                      backgroundColor: Colors.grey[200],
-                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-                      borderRadius: BorderRadius.circular(4),
-                      minHeight: 8,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '0%', // TODO: Calculate from tasks
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
-                  ),
-                ],
+              // Challenge Completion Progress
+              FutureBuilder<Map<String, int>>(
+                future: _statsFuture,
+                builder: (context, snapshot) {
+                  double progressValue = 0.0;
+                  String progressText = '0%';
+
+                  if (snapshot.hasData) {
+                    final stats = snapshot.data!;
+                    final total = stats['total'] ?? 0;
+                    final completed = stats['completed'] ?? 0;
+                    if (total > 0) {
+                      progressValue = completed / total;
+                      progressText = '${(progressValue * 100).round()}%';
+                    }
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: LinearProgressIndicator(
+                          value: progressValue,
+                          backgroundColor: Colors.grey[200],
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(widget.primaryColor),
+                          borderRadius: BorderRadius.circular(4),
+                          minHeight: 8,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        progressText,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: widget.primaryColor,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 8),
               Text(
-                'Today\'s Progress',
+                'Challenge Progress',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey[600],

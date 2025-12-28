@@ -80,3 +80,63 @@ CREATE POLICY "Users can delete own categories"
 -- 3. Category names must be unique per user
 -- 4. All categories display the default category icon (Icons.category)
 -- 5. All categories use the app theme (primary color) for styling
+
+-- ============================================
+-- CHALLENGES TABLE (STEP 3)
+-- ============================================
+
+-- Create challenges table
+CREATE TABLE IF NOT EXISTS challenges (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    category_id UUID REFERENCES categories(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    type TEXT CHECK (type IN ('daily','weekly','monthly','yearly','custom')),
+    start_date DATE,
+    end_date DATE,
+    completed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_challenges_user_id ON challenges(user_id);
+CREATE INDEX IF NOT EXISTS idx_challenges_category_id ON challenges(category_id);
+CREATE INDEX IF NOT EXISTS idx_challenges_created_at ON challenges(created_at);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE challenges ENABLE ROW LEVEL SECURITY;
+
+-- Single policy covering all operations scoped to user
+CREATE POLICY "User own challenges only"
+    ON challenges FOR ALL
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- ============================================
+-- EXAMPLE QUERIES (CHALLENGES)
+-- ============================================
+
+-- Insert a sample challenge
+-- INSERT INTO challenges (user_id, category_id, title, type, start_date, end_date)
+-- VALUES (
+--   'your-user-id-here',
+--   'your-category-id-here',
+--   '30-Day Deen Revival',
+--   'daily',
+--   '2026-01-01',
+--   '2026-01-30'
+-- );
+
+-- Fetch all challenges for a category
+-- SELECT * FROM challenges
+-- WHERE user_id = 'your-user-id-here'
+--   AND category_id = 'your-category-id-here'
+-- ORDER BY created_at DESC;
+
+-- Update a challenge
+-- UPDATE challenges
+-- SET title = 'Updated Title', type = 'weekly', start_date = '2026-02-01', end_date = '2026-03-01'
+-- WHERE id = 'challenge-id-here' AND user_id = 'your-user-id-here';
+
+-- Delete a challenge
+-- DELETE FROM challenges WHERE id = 'challenge-id-here' AND user_id = 'your-user-id-here';

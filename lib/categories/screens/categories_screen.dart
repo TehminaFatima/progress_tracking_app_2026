@@ -203,19 +203,6 @@ class _CategoryCard extends StatefulWidget {
 }
 
 class _CategoryCardState extends State<_CategoryCard> {
-  Future<Map<String, int>>? _statsFuture;
-  final CategoryService _categoryService = CategoryService();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStats();
-  }
-  
-  void _loadStats() {
-    _statsFuture = _categoryService.getChallengeStats(widget.category.id);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -302,100 +289,6 @@ class _CategoryCardState extends State<_CategoryCard> {
                     ],
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              // Challenge Completion Progress
-              FutureBuilder<Map<String, int>>(
-                future: _statsFuture,
-                builder: (context, snapshot) {
-                  double progressValue = 0.0;
-                  String progressText = '0%';
-                  int totalChallenges = 0;
-                  int completedChallenges = 0;
-
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: LinearProgressIndicator(
-                            backgroundColor: Colors.grey[200],
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.grey[400]!),
-                            borderRadius: BorderRadius.circular(4),
-                            minHeight: 8,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '...',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[400],
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-
-                  if (snapshot.hasData && snapshot.data != null) {
-                    final stats = snapshot.data!;
-                    totalChallenges = stats['total'] ?? 0;
-                    completedChallenges = stats['completed'] ?? 0;
-                    if (totalChallenges > 0) {
-                      progressValue = completedChallenges / totalChallenges;
-                      progressText = '${(progressValue * 100).round()}%';
-                    }
-                  }
-
-                  return Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: LinearProgressIndicator(
-                              value: progressValue,
-                              backgroundColor: Colors.grey[200],
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(widget.primaryColor),
-                              borderRadius: BorderRadius.circular(4),
-                              minHeight: 8,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            progressText,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: widget.primaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Challenge Progress',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          Text(
-                            '$completedChallenges / $totalChallenges completed',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
               ),
             ],
           ),

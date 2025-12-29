@@ -30,6 +30,15 @@ class _AddEditChallengeScreenState extends State<AddEditChallengeScreen> {
     _endDate = widget.challenge?.endDate;
   }
 
+  void _resetForm() {
+    _titleCtrl.clear();
+    _selectedType = 'daily';
+    _startDate = null;
+    _endDate = null;
+    _formKey.currentState?.reset();
+    setState(() {});
+  }
+
   @override
   void dispose() {
     _titleCtrl.dispose();
@@ -102,6 +111,8 @@ class _AddEditChallengeScreenState extends State<AddEditChallengeScreen> {
                         endDate: _endDate,
                       );
                       if (ok) {
+                        // Reset the form for the next input
+                        _resetForm();
                         await Future.delayed(const Duration(milliseconds: 1500));
                         Get.back();
                       }

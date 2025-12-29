@@ -176,6 +176,16 @@ class _ChallengeCard extends StatelessWidget {
       return '${fmt(s)} → ${fmt(e)}';
     }
 
+    // Determine status based on dates
+    bool isCompleted = false;
+    if (challenge.endDate != null) {
+      final now = DateTime.now();
+      isCompleted = now.isAfter(challenge.endDate!);
+    }
+
+    // Progress % - TODO: Calculate from tasks when STEP 4 is implemented
+    final progress = 0; // Placeholder - will be: (completedTasks / totalTasks) * 100
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -184,14 +194,6 @@ class _ChallengeCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Checkbox(
-              value: challenge.completed,
-              onChanged: (value) {
-                final controller = Get.find<ChallengeController>();
-                controller.toggleCompletion(challenge.id, challenge.completed);
-              },
-              activeColor: primaryColor,
-            ),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(12)),
@@ -202,11 +204,9 @@ class _ChallengeCard extends StatelessWidget {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(
                   challenge.title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    decoration: challenge.completed ? TextDecoration.lineThrough : null,
-                    color: challenge.completed ? Colors.grey[600] : Colors.black,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -222,17 +222,37 @@ class _ChallengeCard extends StatelessWidget {
             )
           ]),
           const SizedBox(height: 12),
+          // Progress indicator
+          Row(children: [
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Text('Progress', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  Text('$progress%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primaryColor)),
+                ]),
+                const SizedBox(height: 4),
+                LinearProgressIndicator(
+                  value: progress / 100,
+                  backgroundColor: Colors.grey[200],
+                  valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                  minHeight: 6,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 12),
           Row(children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: challenge.completed ? Colors.green.withOpacity(0.1) : primaryColor.withOpacity(0.1),
+                color: isCompleted ? Colors.green.withOpacity(0.1) : primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(children: [
-                Icon(challenge.completed ? Icons.check_circle : Icons.play_circle, size: 18, color: challenge.completed ? Colors.green : primaryColor),
+                Icon(isCompleted ? Icons.check_circle : Icons.play_circle, size: 18, color: isCompleted ? Colors.green : primaryColor),
                 const SizedBox(width: 6),
-                Text(challenge.completed ? 'Completed' : 'Active', style: TextStyle(color: challenge.completed ? Colors.green[800] : primaryColor)),
+                Text(isCompleted ? 'Completed' : 'Active', style: TextStyle(color: isCompleted ? Colors.green[800] : primaryColor)),
               ]),
             ),
             const SizedBox(width: 12),

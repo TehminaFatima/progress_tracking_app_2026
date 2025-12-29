@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'auth/controllers/auth_controller.dart';
 import 'challenges/controllers/challenge_controller.dart';
 import 'categories/controllers/category_controller.dart';
+import 'tasks/controllers/task_controller.dart';
 import 'auth/screens/splash_screen.dart';
 import 'auth/screens/login_screen.dart';
 import 'auth/screens/register_screen.dart';
@@ -12,6 +13,8 @@ import 'categories/screens/categories_screen.dart';
 import 'categories/screens/add_edit_category_screen.dart';
 import 'challenges/screens/challenge_list_screen.dart';
 import 'challenges/screens/add_edit_challenge_screen.dart';
+import 'tasks/screens/task_list_screen.dart';
+import 'tasks/screens/add_edit_task_screen.dart';
 import 'categories/screens/category_drawer.dart';
 
 void main() async {
@@ -26,6 +29,7 @@ void main() async {
   Get.put(AuthController());
   Get.put(CategoryController(), permanent: true);
   Get.put(ChallengeController(), permanent: true);
+  Get.put(TaskController(), permanent: true);
   
   runApp(const MyApp());
 }

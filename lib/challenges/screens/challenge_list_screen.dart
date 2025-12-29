@@ -4,6 +4,7 @@ import '../controllers/challenge_controller.dart';
 import '../models/challenge_model.dart';
 import 'add_edit_challenge_screen.dart';
 import '../../categories/screens/category_drawer.dart';
+import '../../tasks/screens/task_list_screen.dart';
 
 class ChallengeListScreen extends StatefulWidget {
   final String categoryId;
@@ -75,6 +76,13 @@ class _ChallengeListScreenState extends State<ChallengeListScreen> {
               return _ChallengeCard(
                 challenge: challenge,
                 primaryColor: primary,
+                onTap: () {
+                  // Navigate to task list when card is tapped
+                  Get.to(() => TaskListScreen(
+                        challengeId: challenge.id,
+                        challengeName: challenge.title,
+                      ));
+                },
                 onEdit: () {
                   Get.to(() => AddEditChallengeScreen(
                         categoryId: widget.categoryId,
@@ -156,12 +164,14 @@ class _ChallengeListScreenState extends State<ChallengeListScreen> {
 class _ChallengeCard extends StatelessWidget {
   final ChallengeModel challenge;
   final Color primaryColor;
+  final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _ChallengeCard({
     required this.challenge,
     required this.primaryColor,
+    required this.onTap,
     required this.onEdit,
     required this.onDelete,
   });
@@ -190,75 +200,93 @@ class _ChallengeCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.flag, color: Colors.white, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(
-                  challenge.title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(durationText(), style: TextStyle(color: Colors.grey[600])),
-              ]),
-            ),
-            PopupMenuButton<String>(
-              onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 20), SizedBox(width: 12), Text('Edit')])),
-                PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 20, color: Colors.red), SizedBox(width: 12), Text('Delete', style: TextStyle(color: Colors.red))])),
-              ],
-            )
-          ]),
-          const SizedBox(height: 12),
-          // Progress indicator
-          Row(children: [
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Text('Progress', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                  Text('$progress%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primaryColor)),
-                ]),
-                const SizedBox(height: 4),
-                LinearProgressIndicator(
-                  value: progress / 100,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-                  minHeight: 6,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ]),
-            ),
-          ]),
-          const SizedBox(height: 12),
-          Row(children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: isCompleted ? Colors.green.withOpacity(0.1) : primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.flag, color: Colors.white, size: 28),
               ),
-              child: Row(children: [
-                Icon(isCompleted ? Icons.check_circle : Icons.play_circle, size: 18, color: isCompleted ? Colors.green : primaryColor),
-                const SizedBox(width: 6),
-                Text(isCompleted ? 'Completed' : 'Active', style: TextStyle(color: isCompleted ? Colors.green[800] : primaryColor)),
-              ]),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(
+                    challenge.title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(durationText(), style: TextStyle(color: Colors.grey[600])),
+                ]),
+              ),
+              PopupMenuButton<String>(
+                onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
+                itemBuilder: (context) => const [
+                  PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 20), SizedBox(width: 12), Text('Edit')])),
+                  PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 20, color: Colors.red), SizedBox(width: 12), Text('Delete', style: TextStyle(color: Colors.red))])),
+                ],
+              )
+            ]),
+            const SizedBox(height: 12),
+            // Progress indicator
+            Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Text('Progress', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                    Text('$progress%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primaryColor)),
+                  ]),
+                  const SizedBox(height: 4),
+                  LinearProgressIndicator(
+                    value: progress / 100,
+                    backgroundColor: Colors.grey[200],
+                    valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                    minHeight: 6,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ]),
+              ),
+            ]),
+            const SizedBox(height: 12),
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isCompleted ? Colors.green.withOpacity(0.1) : primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(children: [
+                  Icon(isCompleted ? Icons.check_circle : Icons.play_circle, size: 18, color: isCompleted ? Colors.green : primaryColor),
+                  const SizedBox(width: 6),
+                  Text(isCompleted ? 'Completed' : 'Active', style: TextStyle(color: isCompleted ? Colors.green[800] : primaryColor)),
+                ]),
+              ),
+              const SizedBox(width: 12),
+              Text(challenge.type.toUpperCase(), style: TextStyle(color: Colors.grey[600])),
+            ]),
+            const SizedBox(height: 12),
+            // View Tasks Button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: onTap,
+                icon: const Icon(Icons.checklist, size: 20),
+                label: const Text('View Tasks'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: primaryColor,
+                  side: BorderSide(color: primaryColor),
+                ),
+              ),
             ),
-            const SizedBox(width: 12),
-            Text(challenge.type.toUpperCase(), style: TextStyle(color: Colors.grey[600])),
-          ])
-        ]),
+          ]),
+        ),
       ),
     );
   }

@@ -27,10 +27,12 @@ class ChallengeService {
 
   Future<List<ChallengeModel>> fetchChallengesForCategory(String categoryId) async {
     try {
+      print('📊 ChallengeService: Fetching challenges for categoryId: $categoryId');
       final userId = currentUserId;
       if (userId == null) {
         throw ChallengeException(message: 'No authenticated user');
       }
+      print('📊 ChallengeService: userId: $userId');
       final response = await _supabase
           .from('challenges')
           .select()
@@ -38,9 +40,15 @@ class ChallengeService {
           .eq('category_id', categoryId)
           .order('created_at', ascending: false);
 
-      return (response as List)
+      print('📊 ChallengeService: Raw response: $response');
+      final challenges = (response as List)
           .map((e) => ChallengeModel.fromJson(e as Map<String, dynamic>))
           .toList();
+      print('📊 ChallengeService: Returning ${challenges.length} challenges');
+      for (var challenge in challenges) {
+        print('   - Challenge: "${challenge.title}" (id: ${challenge.id}, categoryId: ${challenge.categoryId})');
+      }
+      return challenges;
     } catch (e) {
       throw ChallengeException(message: 'Failed to fetch challenges: ${e.toString()}');
     }

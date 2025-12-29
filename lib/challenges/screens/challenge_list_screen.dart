@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/challenge_controller.dart';
 import '../models/challenge_model.dart';
 import 'add_edit_challenge_screen.dart';
+import '../../categories/screens/category_drawer.dart';
 
 class ChallengeListScreen extends StatefulWidget {
   final String categoryId;
@@ -19,18 +20,30 @@ class ChallengeListScreen extends StatefulWidget {
 }
 
 class _ChallengeListScreenState extends State<ChallengeListScreen> {
-  late ChallengeController _controller;
+  ChallengeController? _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.put(ChallengeController());
-    _controller.fetchForCategory(widget.categoryId);
+    print('🎬 ChallengeListScreen: initState for category ${widget.categoryId} (${widget.categoryName})');
+    _controller = Get.find<ChallengeController>();
+    _controller!.fetchForCategory(widget.categoryId);
+  }
+  
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    
+    if (_controller == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -38,24 +51,27 @@ class _ChallengeListScreenState extends State<ChallengeListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => _controller.refresh(),
+            onPressed: () {
+              _controller!.refresh();
+            },
           )
         ],
       ),
+      drawer: const CategoryDrawer(),
       body: Obx(() {
-        if (_controller.isLoading && !_controller.hasChallenges) {
+        if (_controller!.isLoading && !_controller!.hasChallenges) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (!_controller.hasChallenges) {
+        if (!_controller!.hasChallenges) {
           return _emptyState(context);
         }
         return RefreshIndicator(
-          onRefresh: () => _controller.refresh(),
+          onRefresh: () async => await _controller!.refresh(),
           child: ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: _controller.challenges.length,
+            itemCount: _controller!.challenges.length,
             itemBuilder: (context, index) {
-              final challenge = _controller.challenges[index];
+              final challenge = _controller!.challenges[index];
               return _ChallengeCard(
                 challenge: challenge,
                 primaryColor: primary,
@@ -66,7 +82,7 @@ class _ChallengeListScreenState extends State<ChallengeListScreen> {
                       ));
                 },
                 onDelete: () {
-                  _confirmDelete(context, _controller, challenge);
+                  _confirmDelete(context, _controller!, challenge);
                 },
               );
             },
@@ -126,7 +142,7 @@ class _ChallengeListScreenState extends State<ChallengeListScreen> {
           TextButton(
             onPressed: () {
               Get.back();
-              controller.delete(challenge.id);
+              controller.deleteChallenge(challenge.id);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),

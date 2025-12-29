@@ -32,6 +32,8 @@ class CategoryService {
   Future<List<CategoryModel>> fetchCategories() async {
     try {
       final userId = currentUserId;
+      print('🔐 CategoryService: Current user ID: $userId');
+      
       if (userId == null) {
         throw CategoryException(
           message: 'No authenticated user found',
@@ -39,16 +41,21 @@ class CategoryService {
         );
       }
 
+      print('🔍 CategoryService: Querying categories for user $userId...');
       final response = await _supabase
           .from('categories')
           .select()
           .eq('user_id', userId)
           .order('created_at', ascending: true);
 
-      return (response as List)
+      print('✅ CategoryService: Query successful. Response: $response');
+      final categories = (response as List)
           .map((json) => CategoryModel.fromJson(json))
           .toList();
+      print('✅ CategoryService: Parsed ${categories.length} categories');
+      return categories;
     } catch (e) {
+      print('❌ CategoryService: Error - $e');
       throw CategoryException(
         message: 'Failed to fetch categories: ${e.toString()}',
         code: 'fetch_error',

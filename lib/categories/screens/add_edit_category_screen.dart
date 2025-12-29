@@ -49,7 +49,25 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
           );
 
     if (success) {
-      Get.back();
+      // Show success dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Success'),
+          content: Text(isEditing
+              ? 'Category updated successfully!'
+              : 'Category created successfully!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Get.back();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
   }
 

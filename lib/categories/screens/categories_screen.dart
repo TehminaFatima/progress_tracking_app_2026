@@ -4,16 +4,39 @@ import '../controllers/category_controller.dart';
 import '../services/category_service.dart';
 import 'add_edit_category_screen.dart';
 import '../../challenges/screens/challenge_list_screen.dart';
+import 'category_drawer.dart';
 
 /// Main Categories List Screen
 /// Shows all life categories (pillars) for the user
-class CategoriesScreen extends StatelessWidget {
+class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
 
   @override
+  State<CategoriesScreen> createState() => _CategoriesScreenState();
+}
+
+class _CategoriesScreenState extends State<CategoriesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch categories when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final categoryController = Get.find<CategoryController>();
+      print('🖼️ CategoriesScreen: initState - hasCategories: ${categoryController.hasCategories}, isLoading: ${categoryController.isLoading}');
+      // Always fetch if we don't have categories, regardless of loading state
+      if (!categoryController.hasCategories) {
+        print('🖼️ CategoriesScreen: Triggering fetchCategories');
+        categoryController.fetchCategories();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final categoryController = Get.put(CategoryController());
+    final categoryController = Get.find<CategoryController>();
     final primaryColor = Theme.of(context).colorScheme.primary;
+    
+    print('🖼️ CategoriesScreen: Building with ${categoryController.categories.length} categories, isLoading: ${categoryController.isLoading}');
 
     return Scaffold(
       appBar: AppBar(
@@ -29,6 +52,7 @@ class CategoriesScreen extends StatelessWidget {
           ),
         ],
       ),
+      drawer: const CategoryDrawer(),
       body: Obx(() {
         if (categoryController.isLoading && !categoryController.hasCategories) {
           return const Center(
@@ -179,12 +203,16 @@ class _CategoryCard extends StatefulWidget {
 }
 
 class _CategoryCardState extends State<_CategoryCard> {
-  late Future<Map<String, int>> _statsFuture;
+  Future<Map<String, int>>? _statsFuture;
   final CategoryService _categoryService = CategoryService();
 
   @override
   void initState() {
     super.initState();
+    _loadStats();
+  }
+  
+  void _loadStats() {
     _statsFuture = _categoryService.getChallengeStats(widget.category.id);
   }
 
@@ -282,49 +310,92 @@ class _CategoryCardState extends State<_CategoryCard> {
                 builder: (context, snapshot) {
                   double progressValue = 0.0;
                   String progressText = '0%';
+                  int totalChallenges = 0;
+                  int completedChallenges = 0;
 
-                  if (snapshot.hasData) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: LinearProgressIndicator(
+                            backgroundColor: Colors.grey[200],
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.grey[400]!),
+                            borderRadius: BorderRadius.circular(4),
+                            minHeight: 8,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '...',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  if (snapshot.hasData && snapshot.data != null) {
                     final stats = snapshot.data!;
-                    final total = stats['total'] ?? 0;
-                    final completed = stats['completed'] ?? 0;
-                    if (total > 0) {
-                      progressValue = completed / total;
+                    totalChallenges = stats['total'] ?? 0;
+                    completedChallenges = stats['completed'] ?? 0;
+                    if (totalChallenges > 0) {
+                      progressValue = completedChallenges / totalChallenges;
                       progressText = '${(progressValue * 100).round()}%';
                     }
                   }
 
-                  return Row(
+                  return Column(
                     children: [
-                      Expanded(
-                        child: LinearProgressIndicator(
-                          value: progressValue,
-                          backgroundColor: Colors.grey[200],
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(widget.primaryColor),
-                          borderRadius: BorderRadius.circular(4),
-                          minHeight: 8,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: LinearProgressIndicator(
+                              value: progressValue,
+                              backgroundColor: Colors.grey[200],
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(widget.primaryColor),
+                              borderRadius: BorderRadius.circular(4),
+                              minHeight: 8,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            progressText,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: widget.primaryColor,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        progressText,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: widget.primaryColor,
-                        ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Challenge Progress',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            '$completedChallenges / $totalChallenges completed',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   );
                 },
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Challenge Progress',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
               ),
             ],
           ),

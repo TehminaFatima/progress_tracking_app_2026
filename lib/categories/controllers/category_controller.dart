@@ -20,18 +20,37 @@ class CategoryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchCategories();
+    // Reset loading state on initialization
+    _isLoading.value = false;
+    print('📋 CategoryController: Initialized, isLoading: ${_isLoading.value}');
+  }
+  
+  /// Initialize and fetch categories (call this after login)
+  Future<void> initialize() async {
+    print('📋 CategoryController: Manual initialize called');
+    await fetchCategories();
   }
 
   /// Fetch all categories from Supabase
   Future<void> fetchCategories() async {
+    print('📋 CategoryController: fetchCategories called, current isLoading: $_isLoading');
+    
+    if (_isLoading.value) {
+      print('⚠️ CategoryController: Already loading, skipping duplicate fetch');
+      return;
+    }
+    
     try {
+      print('📋 CategoryController: Starting to fetch categories...');
       _isLoading.value = true;
       _errorMessage.value = '';
 
       final fetchedCategories = await _categoryService.fetchCategories();
+      print('📋 CategoryController: Fetched ${fetchedCategories.length} categories');
       _categories.assignAll(fetchedCategories);
+      print('📋 CategoryController: Categories assigned to observable list');
     } on CategoryException catch (e) {
+      print('❌ CategoryController: CategoryException - ${e.message}');
       _errorMessage.value = e.message;
       Get.snackbar(
         'Error',
@@ -39,14 +58,16 @@ class CategoryController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
-      _errorMessage.value = 'Failed to load categories';
+      print('❌ CategoryController: Error - $e');
+      _errorMessage.value = 'Failed to load categories: $e';
       Get.snackbar(
         'Error',
-        'Failed to load categories',
+        'Failed to load categories: $e',
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
       _isLoading.value = false;
+      print('📋 CategoryController: Fetch complete. Loading: false, Categories count: ${_categories.length}');
     }
   }
 

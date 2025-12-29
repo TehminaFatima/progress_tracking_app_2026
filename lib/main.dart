@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'auth/controllers/auth_controller.dart';
+import 'challenges/controllers/challenge_controller.dart';
+import 'categories/controllers/category_controller.dart';
 import 'auth/screens/splash_screen.dart';
 import 'auth/screens/login_screen.dart';
 import 'auth/screens/register_screen.dart';
@@ -10,6 +12,7 @@ import 'categories/screens/categories_screen.dart';
 import 'categories/screens/add_edit_category_screen.dart';
 import 'challenges/screens/challenge_list_screen.dart';
 import 'challenges/screens/add_edit_challenge_screen.dart';
+import 'categories/screens/category_drawer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +22,11 @@ void main() async {
     anonKey: 'sb_publishable_tmOEMxEpUN-b3Q3OSJUSnQ_If8l3bLL',
   );
   
+  // Initialize controllers BEFORE running the app
+  Get.put(AuthController());
+  Get.put(CategoryController(), permanent: true);
+  Get.put(ChallengeController(), permanent: true);
+  
   runApp(const MyApp());
 }
 
@@ -27,9 +35,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize AuthController
-    Get.put(AuthController());
-    
     return GetMaterialApp(
       title: 'Progress Tracking App 2026',
       theme: ThemeData(
@@ -96,6 +101,7 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
+      drawer: const CategoryDrawer(),
       body: Obx(() {
         final user = authController.currentUser;
         
